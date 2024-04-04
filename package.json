@@ -1,0 +1,19 @@
+{
+  "name": "kos",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "clean:jsdoc": "rm -rf ./out",
+    "build:jsdoc": "jsdoc index.*",
+    "lint:html": "markuplint \"**/*.html\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "jsdoc": "^4.0.2",
+    "markuplint": "^4.5.0"
+  }
+}

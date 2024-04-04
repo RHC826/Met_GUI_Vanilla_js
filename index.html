@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Vanilla JS で Ajax してみる</title>
+        <link rel="stylesheet" href="https://fonts.xz.style/serve/inter.css" />
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/@exampledev/new.css@1.1.2/new.min.css"
+        />
+    </head>
+
+    <body>
+        <h1>メトロポリタン美術館 API 操作画面</h1>
+        <div id="image"></div>
+        <div>
+            <form>
+                <label for="input_label">単語検索:</label>
+                <input id="input_label" value="venus" />
+                <button type="button" id="run">RUN!</button>
+            </form>
+        </div>
+        <div>
+            <form>
+                <label for="input_label_objects">ID検索:</label>
+                <input id="input_label_objects" value="361902" />
+                <button type="button" id="run_fetch">RUN!!</button>
+            </form>
+        </div>
+
+        <label for="drop_select">ドロップリスト検索 :</label>
+        <select name="works" id="drop_select">
+        </select>
+        <button id="run_drop">RUN!!!</button>
+        <button id="run_peke" onclick="remove_peke()">RUN_PEKE</button>
+    </body>
+    <script defer src="index.js"></script>
+</html>
