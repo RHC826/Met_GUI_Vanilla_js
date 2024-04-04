@@ -1,14 +1,16 @@
 //@ts-check
 
+/**
+ * @param {string | null} word
+ */
 async function hoge(word) {
-    /**  @type {HTMLInputElement | null} */
+    /**  @type {number | null} */
     if (!word) {
         console.error("NO DATA!");
         return;
     }
-    const words = word.value;
     const obj = await fetch_content(
-        `https://collectionapi.metmuseum.org/public/collection/v1/objects/${words}`
+        `https://collectionapi.metmuseum.org/public/collection/v1/objects/${word}`
     );
     const Element = createAnchorTag(obj);
     document.querySelector("div#image")?.appendChild(Element);
@@ -70,11 +72,14 @@ document
             opts(String(id));
         });
 
-        console.dir(obj.objectIDs)
-        for (let index = 0; index < 3; index++) {
+        console.dir(obj.objectIDs);
+        // 最大数
+        // const max = obj.objectIDs.length;
+        for (let index = 0; index < 100; index++) {
             const element = obj.objectIDs[index];
-            console.log(element)
-            //await hoge(element);
+            console.log(element);
+            await hoge(String(element));
+            await new Promise((s) => setTimeout(s, 3000));
         }
 
         return obj;
