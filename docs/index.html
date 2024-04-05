@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="stylesheet" href="https://unpkg.com/boltcss/bolt.min.css" integrity="sha384-PSzHklU0wT897cBMg+9qlTsh9O0FtnWnfHus5/jGskSj518OHHoQug4Z2cAKCfcV">
+
+
+        <title>フレームワークなしで Ajax してみる</title>
+    </head>
+
+    <body>
+        <h1>メトロポリタン美術館 API 操作画面</h1>
+        <section id="image"></section>
+        <search>
+            <form>
+                <section class="上段">
+                    <label for="input_label">単語検索:</label>
+                    <input id="input_label" />
+                    <button id="run_drop" type="button">RUN!!!</button>
+                </section>
+                <section class="下段">
+                    <label for="drop_select">ドロップリスト検索 :</label>
+                    <select name="works" id="drop_select"></select>
+                    <button type="button" id="run_fetch">RUN!!</button>
+                    <button type="button" id="run_peke" onclick="remove_peke()">
+                        ❌をすべて消す
+                    </button>
+                </section>
+            </form>
+        </search>
+        <script>
+            //@ts-check
+
+            /**
+             * id の作品への画像つきリンクを作成する
+             * @param {string | null} id
+             */
+            async function append_anchor(id) {
+                if (!id) {
+                    console.error("NO DATA!");
+                    return;
+                }
+                const obj = await fetch_content(
+                    `https://collectionapi.metmuseum.org/public/collection/v1/objects/${id}`
+                );
+                if ("total" in obj) {
+                    console.error("想定しないオブジェクトが発見されました");
+                    return;
+                }
+                const Element = createAnchorTag(obj);
+                document.querySelector("section#image")?.appendChild(Element);
+                return obj;
+            }
+            /**
+             * ドロップダウンリストの要素を作る関数
+             * @param {string} id
+             * @returns {void}
+             */
+            function append_option(id) {
+                const opt = document.createElement("option");
+                opt.textContent = id;
+                opt.className = "drop_box_item";
+                document.querySelector("#drop_select")?.appendChild(opt);
+            }
+
+            /**
+             * API を叩く関数。
+             * @param {string} path
+             * @returns {Promise<{ objectIDs: number[]; total: number; } | { primaryImageSmall: string; objectID: number; title: string; }>} - APIから取得したオブジェクト
+             */
+            async function fetch_content(path) {
+                const content = await fetch(path).then((response) =>
+                    response.json()
+                );
+                console.log("fetch_content:", content);
+                return content;
+            }
+
+            /**
+             * 指定されたURLから画像埋め込み要素を生成します。
+             * URLが指定されていない場合、代わりにエラーメッセージが含まれたパラグラフ要素が生成されます。
+             * @param {string} url - 画像のURL
+             * @returns {HTMLImageElement|HTMLParagraphElement} - 画像埋め込み要素またはパラグラフ要素
+             */
+            function createImgTag(url) {
+                if (!url) {
+                    const paragraph = document.createElement("p");
+                    paragraph.textContent = "❌";
+                    return paragraph;
+                }
+                const imgTag = document.createElement("img");
+                imgTag.src = url;
+                return imgTag;
+            }
+
+            /**
+             * 指定されたオブジェクトから画像埋め込み要素を生成します。
+             * URLが設定されていない場合、代わりにエラーメッセージが含まれたパラグラフ要素が生成されます。
+             * @param {{primaryImageSmall: string, objectID: number, title: string}} Met_obj - JSON
+             * @returns {HTMLAnchorElement|HTMLParagraphElement} - 画像埋め込み要素またはパラグラフ要素
+             */
+            function createAnchorTag(Met_obj) {
+                if (!Met_obj.primaryImageSmall) {
+                    // Click すると消える Error パラグラフ
+                    const paragraph = document.createElement("p");
+                    paragraph.textContent = "❌";
+                    paragraph.className = "Error";
+                    paragraph.addEventListener("click", () => {
+                        paragraph.remove();
+                    });
+                    return paragraph;
+                }
+                const imgTag = document.createElement("img");
+                const anchorTag = document.createElement("a");
+                anchorTag.appendChild(imgTag);
+                anchorTag.href = `https://www.metmuseum.org/art/collection/search/${Met_obj.objectID}`;
+                imgTag.src = Met_obj.primaryImageSmall;
+                imgTag.alt = Met_obj.title;
+                return anchorTag;
+            }
+
+            /**
+             * ❌ を一度に消す関数
+             */
+            function remove_peke() {
+                document
+                    .querySelectorAll("p.Error")
+                    .forEach((res) => res.remove());
+            }
+
+            // ID検索のボタン
+            document
+                .querySelector("button#run_fetch")
+                ?.addEventListener("click", async () => {
+                    /** @type {HTMLSelectElement | null} */
+                    const word = document.querySelector("#drop_select");
+                    if (!word) {
+                        return;
+                    }
+                    await append_anchor(word.value);
+                });
+
+            // ワード検索のボタン
+            document
+                .querySelector("button#run_drop")
+                ?.addEventListener("click", async () => {
+                    // このイベントでやること
+                    // - objectIDs を得る
+                    // - ドロップダウンリストの中身を詰める
+                    // - リンクを表示する
+                    /** @type {HTMLInputElement | null} */
+                    const word = document.querySelector("input#input_label");
+                    if (!word?.value) {
+                        console.error("NO DATA!");
+                        return;
+                    }
+
+                    const obj = await fetch_content(
+                        `https://collectionapi.metmuseum.org/public/collection/v1/search?q=${word?.value}`
+                    );
+
+                    // ここからドロップダウンリストの中身を詰める
+                    if ("title" in obj) {
+                        return;
+                    }
+
+                    obj.objectIDs.forEach((id) => {
+                        append_option(String(id));
+                    });
+
+                    // ここからリンクを張る作業
+                    // 負荷をかけないために API を叩く回数と間隔を制限する
+                    const max =
+                        obj.objectIDs.length > 10 ? 10 : obj.objectIDs.length;
+                    const delay = 1000;
+                    for (let index = 0; index < max; index++) {
+                        // index > obj.objectIDs.length のとき undefined を返してエラーを吐かないことに注意
+                        if (index > obj.objectIDs.length) {
+                            break;
+                        }
+                        const objectID = obj.objectIDs[index];
+
+                        await append_anchor(String(objectID));
+                        await new Promise((s) => setTimeout(s, delay));
+                    }
+                });
+        </script>
+    </body>
+</html>
