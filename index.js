@@ -20,6 +20,17 @@ async function append_anchor(id) {
     document.querySelector("section#image")?.appendChild(Element);
     return obj;
 }
+/**
+ * ドロップダウンリストの要素を作る関数
+ * @param {string} id
+ * @returns {void}
+ */
+function append_option(id) {
+    const opt = document.createElement("option");
+    opt.textContent = id;
+    opt.className = "drop_box_item";
+    document.querySelector("#drop_select")?.appendChild(opt);
+}
 
 /**
  * API を叩く関数。
@@ -98,6 +109,10 @@ document
 document
     .querySelector("button#run_drop")
     ?.addEventListener("click", async () => {
+        // このイベントでやること
+        // - objectIDs を得る
+        // - ドロップダウンリストの中身を詰める
+        // - リンクを表示する
         /** @type {HTMLInputElement | null} */
         const word = document.querySelector("input#input_label");
         if (!word?.value) {
@@ -108,33 +123,28 @@ document
         const obj = await fetch_content(
             `https://collectionapi.metmuseum.org/public/collection/v1/search?q=${word?.value}`
         );
+
+        // ここからドロップダウンリストの中身を詰める
         if ("title" in obj) {
             return;
         }
 
-        const opts = (/** @type {string} */ id) => {
-            const opt = document.createElement("option");
-            opt.textContent = id;
-            opt.className = "drop_box_item";
-            document.querySelector("#drop_select")?.appendChild(opt);
-        };
-
         obj.objectIDs.forEach((id) => {
-            opts(String(id));
+            append_option(String(id));
         });
 
-        console.log("loop:", obj.objectIDs);
-        // API を叩く回数を制限する
+        // ここからリンクを張る作業
+        // 負荷をかけないために API を叩く回数と間隔を制限する
         const max = obj.objectIDs.length > 10 ? 10 : obj.objectIDs.length;
         const delay = 1000;
         for (let index = 0; index < max; index++) {
-            const element = obj.objectIDs[index];
-
-            // 不要な通信を避けるためにヌリッシュな値を break
-            if (!element) {
+            // index > obj.objectIDs.length のとき undefined を返してエラーを吐かないことに注意
+            if (index > obj.objectIDs.length) {
                 break;
             }
-            await append_anchor(String(element));
+            const objectID = obj.objectIDs[index];
+
+            await append_anchor(String(objectID));
             await new Promise((s) => setTimeout(s, delay));
         }
     });
