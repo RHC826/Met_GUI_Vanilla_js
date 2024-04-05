@@ -12,22 +12,23 @@ async function append_anchor(id) {
     const obj = await fetch_content(
         `https://collectionapi.metmuseum.org/public/collection/v1/objects/${id}`
     );
+    if ("total" in obj) {
+        console.error("想定しないオブジェクトが発見されました");
+        return;
+    }
     const Element = createAnchorTag(obj);
-    document.querySelector("div#image")?.appendChild(Element);
+    document.querySelector("section#image")?.appendChild(Element);
     return obj;
 }
 
 /**
  * API を叩く関数。
  * @param {string} path
- * @returns {Promise<any>}
+ * @returns {Promise<{ objectIDs: number[]; total: number; } | { primaryImageSmall: string; objectID: number; title: string; }>} - APIから取得したオブジェクト
  */
 async function fetch_content(path) {
-    if (path === "") {
-        return;
-    }
     const content = await fetch(path).then((response) => response.json());
-    console.log(content);
+    console.log("fetch_content:", content);
     return content;
 }
 
@@ -65,7 +66,6 @@ function createAnchorTag(Met_obj) {
         });
         return paragraph;
     }
-    console.dir(Met_obj);
     const imgTag = document.createElement("img");
     const anchorTag = document.createElement("a");
     anchorTag.appendChild(imgTag);
@@ -100,21 +100,22 @@ document
     ?.addEventListener("click", async () => {
         /** @type {HTMLInputElement | null} */
         const word = document.querySelector("input#input_label");
-        console.log(word?.value ?? "No Data");
-        if (word?.value === null) {
+        if (!word?.value) {
             console.error("NO DATA!");
             return;
         }
 
-        /** @type {{objectIDs: number[], total: number}} */
         const obj = await fetch_content(
             `https://collectionapi.metmuseum.org/public/collection/v1/search?q=${word?.value}`
         );
-        console.dir(obj);
+        if ("title" in obj) {
+            return;
+        }
 
         const opts = (/** @type {string} */ id) => {
             const opt = document.createElement("option");
             opt.textContent = id;
+            opt.className = "drop_box_item";
             document.querySelector("#drop_select")?.appendChild(opt);
         };
 
@@ -122,17 +123,18 @@ document
             opts(String(id));
         });
 
-        console.dir(obj.objectIDs);
-        // 最大数
-        // const max = obj.objectIDs.length;
+        console.log("loop:", obj.objectIDs);
+        // API を叩く回数を制限する
+        const max = obj.objectIDs.length > 10 ? 10 : obj.objectIDs.length;
         const delay = 1000;
-        const max = 5;
         for (let index = 0; index < max; index++) {
             const element = obj.objectIDs[index];
-            console.log(element);
+
+            // 不要な通信を避けるためにヌリッシュな値を break
+            if (!element) {
+                break;
+            }
             await append_anchor(String(element));
             await new Promise((s) => setTimeout(s, delay));
         }
-
-        return obj;
     });

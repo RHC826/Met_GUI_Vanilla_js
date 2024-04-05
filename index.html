@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>JSDoc で Ajax してみる</title>
+        <title>フレームワークなしで Ajax してみる</title>
         <link rel="stylesheet" href="https://fonts.xz.style/serve/inter.css" />
         <link
             rel="stylesheet"
@@ -13,20 +13,24 @@
 
     <body>
         <h1>メトロポリタン美術館 API 操作画面</h1>
-        <div id="image"></div>
-        <div>
+        <section id="image"></section>
+        <search>
             <form>
-                <label for="input_label">単語検索:</label>
-                <input id="input_label" value="venus" />
-                <button id="run_drop" type="button">RUN!!!</button>
+                <section class="上段">
+                    <label for="input_label">単語検索:</label>
+                    <input id="input_label" />
+                    <button id="run_drop" type="button">RUN!!!</button>
+                </section>
+                <section class="下段">
+                    <label for="drop_select">ドロップリスト検索 :</label>
+                    <select name="works" id="drop_select"></select>
+                    <button type="button" id="run_fetch">RUN!!</button>
+                    <button type="button" id="run_peke" onclick="remove_peke()">
+                        ❌をすべて消す
+                    </button>
+                </section>
             </form>
-        </div>
-        <div>
-            <label for="drop_select">ドロップリスト検索 :</label>
-            <select name="works" id="drop_select"></select>
-            <button type="button" id="run_fetch">RUN!!</button>
-            <button id="run_peke" onclick="remove_peke()">RUN_PEKE</button>
-        </div>
+        </search>
     </body>
     <script defer src="index.js"></script>
 </html>
